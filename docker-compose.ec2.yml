@@ -1,0 +1,12 @@
+services:
+  frontend:
+    image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/frontend:${IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      UPSTREAM_GATEWAY_URL: ${UPSTREAM_GATEWAY_URL}
+      FRONTEND_GATEWAY_URL: ${PUBLIC_BASE_URL}
+      FRONTEND_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+    ports:
+      - "80:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
