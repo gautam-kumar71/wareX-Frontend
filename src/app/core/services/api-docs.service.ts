@@ -35,17 +35,43 @@ export interface DocsCatalog {
 })
 export class ApiDocsService {
   private readonly docsUrl = `${API_CONFIG.gateway || ''}/internal/docs/services`;
+  private readonly gatewayBaseUrl = API_CONFIG.gateway || '';
 
   constructor(private http: HttpClient) {}
 
   getServiceDocs(): Observable<DocsCatalog> {
     return this.http.get<DocsCatalogResponse>(this.docsUrl).pipe(
       map(response => ({
-        gatewayBaseUrl: response.gatewayBaseUrl,
-        gatewaySwaggerUrl: response.gatewaySwaggerUrl,
-        gatewayOpenApiUrl: response.gatewayOpenApiUrl,
-        services: response.services
+        gatewayBaseUrl: this.normalizeGatewayUrl(response.gatewayBaseUrl),
+        gatewaySwaggerUrl: this.normalizeGatewayUrl(response.gatewaySwaggerUrl),
+        gatewayOpenApiUrl: this.normalizeGatewayUrl(response.gatewayOpenApiUrl),
+        services: response.services.map(service => ({
+          ...service,
+          baseUrl: this.normalizeGatewayUrl(service.baseUrl),
+          swaggerUiUrl: this.normalizeGatewayUrl(service.swaggerUiUrl),
+          swaggerIndexUrl: this.normalizeGatewayUrl(service.swaggerIndexUrl),
+          openApiUrl: this.normalizeGatewayUrl(service.openApiUrl),
+          gatewayOpenApiUrl: this.normalizeGatewayUrl(service.gatewayOpenApiUrl),
+          healthUrl: this.normalizeGatewayUrl(service.healthUrl)
+        }))
       }))
     );
+  }
+
+  private normalizeGatewayUrl(url: string): string {
+    if (!url) {
+      return url;
+    }
+
+    if (!this.gatewayBaseUrl) {
+      return url;
+    }
+
+    try {
+      const parsedUrl = new URL(url, this.gatewayBaseUrl);
+      return `${this.gatewayBaseUrl}${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+    } catch {
+      return url;
+    }
   }
 }
