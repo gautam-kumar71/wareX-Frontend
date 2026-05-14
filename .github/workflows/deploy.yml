@@ -1,0 +1,85 @@
+name: Build and Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: ${{ github.repository_owner }}/warex-frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ github.sha }}
+
+      - name: Prepare deploy bundle
+        shell: bash
+        run: |
+          mkdir -p deploy-bundle
+          cp docker-compose.ec2.yml deploy-bundle/docker-compose.ec2.yml
+          printf '%s\n' "${{ secrets.FRONTEND_EC2_ENV_FILE }}" > deploy-bundle/.env
+          {
+            echo "IMAGE_REGISTRY=${{ env.REGISTRY }}"
+            echo "IMAGE_NAMESPACE=${{ env.IMAGE_NAMESPACE }}"
+            echo "IMAGE_TAG=${{ github.sha }}"
+          } >> deploy-bundle/.env
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.FRONTEND_EC2_HOST }}
+          username: ${{ secrets.FRONTEND_EC2_USER }}
+          key: ${{ secrets.FRONTEND_EC2_SSH_KEY }}
+          source: "deploy-bundle/*"
+          target: "/opt/warex-frontend"
+          strip_components: 1
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.FRONTEND_EC2_HOST }}
+          username: ${{ secrets.FRONTEND_EC2_USER }}
+          key: ${{ secrets.FRONTEND_EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/warex-frontend
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
+            docker compose --env-file .env -f docker-compose.ec2.yml pull
+            docker compose --env-file .env -f docker-compose.ec2.yml up -d
