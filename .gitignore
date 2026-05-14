@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.angular/
+coverage/
+.env
+.env.*
+!.env.ec2.example
