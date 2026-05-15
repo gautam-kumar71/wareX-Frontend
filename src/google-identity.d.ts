@@ -3,6 +3,7 @@ declare global {
     __WAREX_CONFIG?: {
       gatewayUrl?: string;
       googleClientId?: string;
+      razorpayKeyId?: string;
     };
     google?: {
       accounts?: {

@@ -54,6 +54,7 @@ jobs:
         run: |
           mkdir -p deploy-bundle
           cp docker-compose.ec2.yml deploy-bundle/docker-compose.ec2.yml
+          cp Caddyfile deploy-bundle/Caddyfile
           printf '%s\n' "${{ secrets.FRONTEND_EC2_ENV_FILE }}" > deploy-bundle/.env
           {
             echo "IMAGE_REGISTRY=${{ env.REGISTRY }}"

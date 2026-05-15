@@ -3,10 +3,32 @@ services:
     image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/frontend:${IMAGE_TAG}
     restart: unless-stopped
     environment:
-      UPSTREAM_GATEWAY_URL: ${UPSTREAM_GATEWAY_URL}
+      UPSTREAM_GATEWAY_URL: "${UPSTREAM_GATEWAY_URL:-http://host.docker.internal:8080}"
       FRONTEND_GATEWAY_URL: ${FRONTEND_GATEWAY_URL:-}
       FRONTEND_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      FRONTEND_RAZORPAY_KEY_ID: ${FRONTEND_RAZORPAY_KEY_ID}
     ports:
-      - "80:80"
+      - "8081:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  caddy_data:
+  caddy_config:

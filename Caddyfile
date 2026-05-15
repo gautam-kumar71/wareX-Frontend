@@ -1,0 +1,8 @@
+{$PUBLIC_DOMAIN} {
+    encode zstd gzip
+
+    @gateway path /api/* /service-docs/* /internal/* /swagger /swagger/* /swagger-ui/* /webjars/* /api-docs /api-docs/*
+    reverse_proxy @gateway host.docker.internal:8080
+
+    reverse_proxy host.docker.internal:8081
+}

@@ -4,8 +4,8 @@ import { InvoiceService, Invoice } from '../../core/services/invoice.service';
 import { Payment, PaymentService } from '../../core/services/payment.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
+import { API_CONFIG } from '../../core/config/api.config';
 import { ServiceUnavailableComponent } from '../../shared/components/service-unavailable/service-unavailable.component';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-payment-hub',
@@ -339,7 +339,7 @@ import { environment } from '../../../environments/environment';
   `]
 })
 export class PaymentHubComponent implements OnInit {
-  private readonly razorpayKey = environment.razorpayKeyId;
+  private readonly razorpayKey = API_CONFIG.razorpayKeyId;
   private readonly inrFormatter = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',

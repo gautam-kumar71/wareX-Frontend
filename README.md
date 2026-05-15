@@ -19,9 +19,19 @@ This repository contains the Angular frontend and frontend deployment assets.
 
 `GHCR_TOKEN` should be a GitHub personal access token with package read access for deployment on EC2.
 
+`FRONTEND_EC2_ENV_FILE` must include:
+
+- `PUBLIC_DOMAIN` set to your live hostname, for example `warex.example.com`
+- `UPSTREAM_GATEWAY_URL=http://host.docker.internal:8080` so the frontend container can still proxy gateway routes expected by the current image
+- `FRONTEND_GATEWAY_URL=` left blank to keep the browser on the same HTTPS origin
+- `GOOGLE_CLIENT_ID` for Google Sign-In
+- `FRONTEND_RAZORPAY_KEY_ID` so Razorpay checkout uses the right frontend key at runtime
+
 ## Required EC2 preparation
 
 Install Docker and Docker Compose on the frontend EC2 host. The workflow deploys files to `/opt/warex-frontend`.
+
+Open inbound ports `80` and `443` on the EC2 security group so Caddy can complete ACME challenges and serve HTTPS.
 
 ## First push
 

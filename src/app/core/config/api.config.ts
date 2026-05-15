@@ -21,7 +21,8 @@ export const API_CONFIG = {
     alerts: '/api/v1/alerts',
     reports: '/api/v1/reports'
   },
-  googleClientId: runtimeConfig.googleClientId?.trim() || '1088186009987-kiiaeng9ombpmg7gcot0viaruqgjfn2f.apps.googleusercontent.com'
+  googleClientId: runtimeConfig.googleClientId?.trim() || '1088186009987-kiiaeng9ombpmg7gcot0viaruqgjfn2f.apps.googleusercontent.com',
+  razorpayKeyId: runtimeConfig.razorpayKeyId?.trim() || 'rzp_test_YourKeyId'
 };
 
 export function getApiUrl(service: keyof typeof API_CONFIG.endpoints): string {
